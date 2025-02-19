@@ -290,10 +290,10 @@ app.post('/client_master',(req,res)=>
             var s5 = "select * from client_master where client_name = '"+client_name+"'and client_comp_id = '"+client_comp_id+"';";
             var s6 = "select * from client_master where client_code = '"+client_code+"'and client_comp_id = '"+client_comp_id+"';";
            
-            var sq = s5+s6;
+            var sqadd = s5+s6;
 
-            console.log(sq);
-            client.query(sq, function(err,result5)
+            console.log(sqadd);
+            client.query(sqadd, function(err,result5)
             {
                try 
                {
@@ -304,12 +304,12 @@ app.post('/client_master',(req,res)=>
                 else if (result5[0].rows.length > 0)
                 {
                     console.log("result 0 :")
-                    res.json("already '"+client_name+"' exixts ");
+                    res.json("already name : '"+client_name+"' exixts ");
                 }
                 else if (result5[1].rows.length > 0)
                 {
                     console.log("result 1 :")
-                    res.json("already '"+client_code+"' exixts ");
+                    res.json("already code : '"+client_code+"' exixts ");
                 }
                 else 
                 {
@@ -350,25 +350,59 @@ app.post('/client_master',(req,res)=>
             var client_code = req.body.client_code;
             var client_active_ind = req.body.client_active_ind != undefined? req.body.client_active_ind :1;
 
-            var sql5 = "update client_master set client_name = '"+client_name+"',client_code = '"+client_code+"',client_active_ind = '"+client_active_ind+"' where client_id = '"+client_id+"'and client_comp_id = '"+client_comp_id+"';";
+            var s7 = "select * from client_master where client_name = '"+client_name+"'and client_comp_id = '"+client_comp_id+"';";
+            var s8 = "select * from client_master where client_code = '"+client_code+"'and client_comp_id = '"+client_comp_id+"';";
+           
+            var squpdate = s7+s8;
 
-            client.query(sql5, (err, result) => 
+            console.log("squpdate "+squpdate)
+
+            client.query(squpdate,function(err,result6)
             {
-                if (err) 
+                try 
                 {
-                    console.error("Error updating order:", err);
-                    return res.json("Error updating order: " + err);
+                 if (err) 
+                 {
+                  res.json("error squpdate query"+err);  
+                 } 
+                 else if (result6[0].rows.length > 0)
+                 {
+                    console.log("result 0 :")
+                    res.json("already name update : '"+client_name+"' exixts ");
+                 }
+                 else if (result6[1].rows.length > 0)
+                 {
+                    console.log("result 1 :")
+                    res.json("already code update : '"+client_code+"' exixts ");
+                 }
+                 else 
+                 {
+                    var sql5 = "update client_master set client_name = '"+client_name+"',client_code = '"+client_code+"',client_active_ind = '"+client_active_ind+"' where client_id = '"+client_id+"'and client_comp_id = '"+client_comp_id+"';";
+
+                    client.query(sql5, (err, result) => 
+                    {
+                        if (err) 
+                        {
+                            console.error("Error updating order:", err);
+                            return res.json("Error updating order: " + err);
+                        } 
+                        else 
+                        {
+                            res.json("Order updated successfully.");
+                        }
+                    });
+                    
+                 }   
                 } 
-                else 
+                catch (error) 
                 {
-                    res.json("Order updated successfully.");
+                 res.json("catch error for squpdate")   
                 }
             });
-
         } 
         catch (error) 
         {
-            res.json("catch error client 2")    
+            res.json("catch error cupdate client2")    
         }
     }
     else if (req.body.key === "listclient")
