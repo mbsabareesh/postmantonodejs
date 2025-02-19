@@ -350,8 +350,8 @@ app.post('/client_master',(req,res)=>
             var client_code = req.body.client_code;
             var client_active_ind = req.body.client_active_ind != undefined? req.body.client_active_ind :1;
 
-            var s7 = "select * from client_master where client_name = '"+client_name+"'and client_comp_id = '"+client_comp_id+"';";
-            var s8 = "select * from client_master where client_code = '"+client_code+"'and client_comp_id = '"+client_comp_id+"';";
+            var s7 = "select * from client_master where client_name = '"+client_name+"'and client_comp_id = '"+client_comp_id+"' and client_id <> '"+client_id+"' ;";
+            var s8 = "select * from client_master where client_code = '"+client_code+"'and client_comp_id = '"+client_comp_id+"' and client_id <> '"+client_id+"';";
            
             var squpdate = s7+s8;
 
