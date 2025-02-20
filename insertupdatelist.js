@@ -9,7 +9,8 @@ const client = new Client({
     user: "postgres",
     port: 5432,
     password: "Sabareesh_3936",
-    database: "companydetails"
+    database: "companydetails",
+    multiplistatement : true
 });
 
 client.connect((err) => {
@@ -60,7 +61,7 @@ app.post('/company_master', (req, res) =>
         {
             var comp_code = req.body.comp_code;
             var comp_name = req.body.comp_name;
-            var com_active_ind = req.body.com_active_ind !== undefined ? req.body.com_active_ind : 0;
+            var com_active_ind = req.body.com_active_ind !== undefined ? req.body.com_active_ind : 1;
             var comp_login_id = req.body.comp_login_id;
 
             var s1 = "SELECT * FROM company_details WHERE comp_name = '" + comp_name + "';";
@@ -88,14 +89,14 @@ app.post('/company_master', (req, res) =>
                 // {
                 //  res.json("Already exists: " + com_active_ind);
                 // }
-                else if (result[3].rows.length > 0) 
-                {
-                 res.json("Already exists: " + comp_login_id);
-                }
+                // else if (result[3].rows.length > 0) 
+                // {
+                //  res.json("Already exists: " + comp_login_id);
+                // }
                 else
                 {
                     var sql = "INSERT INTO company_details (comp_code, comp_name, com_active_ind, comp_login_id) " +
-                          "VALUES ('" + comp_code + "','" + comp_name + "','" + com_active_ind + "','" + comp_login_id + "') " + "RETURNING id;";
+                          "VALUES ('" + comp_code + "','" + comp_name + "','" + com_active_ind + "','" + comp_login_id + "') " + "RETURNING comp_id;";
 
                     client.query(sql, (err, result2) => 
                     {
@@ -122,7 +123,7 @@ app.post('/company_master', (req, res) =>
         const comp_id = undefined_numeric(req.body.comp_id);
         const comp_code = req.body.comp_code;
         const comp_name = req.body.comp_name;
-        const com_active_ind = req.body.com_active_ind !== undefined ? req.body.com_active_ind : 0;
+        const com_active_ind = req.body.com_active_ind;
         const comp_login_id = undefined_numeric(req.body.comp_login_id);
 
         console.log("company id : "+comp_id);
@@ -269,12 +270,9 @@ app.post('/company_master', (req, res) =>
 
 
 
+                           /* client master table code */        
 
 
-
-
-
-// client master
 
 app.post('/client_master',(req,res)=>
 {
@@ -285,60 +283,87 @@ app.post('/client_master',(req,res)=>
             var client_comp_id = req.body.client_comp_id;
             var client_name = req.body.client_name;
             var client_code = req.body.client_code;
-            var client_active_ind = req.body.client_active_ind != undefined? req.body.client_active_ind :1;
 
-            var s5 = "select * from client_master where client_name = '"+client_name+"'and client_comp_id = '"+client_comp_id+"';";
-            var s6 = "select * from client_master where client_code = '"+client_code+"'and client_comp_id = '"+client_comp_id+"';";
-           
-            var sqadd = s5+s6;
+            var s9 = "select com_active_ind from company_details where comp_id = '"+client_comp_id+"';";
 
-            console.log(sqadd);
-            client.query(sqadd, function(err,result5)
-            {
-               try 
-               {
-                if (err) 
+            console.log("s9 error the query "+s9);
+            
+            var sqadd = s9;
+            console.log("sqadd  : "+sqadd);
+            
+            client.query(sqadd, function(err, result5) {
+                try 
                 {
-                  res.json("error query sq :"+err)  
-                }
-                else if (result5[0].rows.length > 0)
-                {
-                    console.log("result 0 :")
-                    res.json("already name : '"+client_name+"' exixts ");
-                }
-                else if (result5[1].rows.length > 0)
-                {
-                    console.log("result 1 :")
-                    res.json("already code : '"+client_code+"' exixts ");
-                }
-                else 
-                {
-                    var sql4 = "insert into client_master (client_comp_id,client_name,client_code,client_active_ind)values ('"+client_comp_id+"','"+client_name+"','"+client_code+"','"+client_active_ind+"') returning client_id";
+                    console.log("first errro ");
+                    if (err) {
+                        console.log("error log"+err);
+                        res.json("error query sq: " + err);
+                    } 
+                    else
+                    { 
+                        var comp_active_ind =  result5.rows[0].com_active_ind;
 
-                    client.query(sql4,function(err,result4)
-                    {
-                        if(err)
+                        if(comp_active_ind == 0)
                         {
-                            res.json("error query sql4 :"+err);
+                            res.json("This Company is inactive so you can't add a client");
                         }
                         else
                         {
-                            res.json({ message: "Successfully viewed the data", data: result4.rows }); 
-                        }
-                    });   
-                }
+                            var s5 = "select * from client_master where client_name = '"+client_name+"' and client_comp_id = '"+client_comp_id+"';";
+                            var s6 = "select * from client_master where client_code = '"+client_code+"' and client_comp_id = '"+client_comp_id+"';";
+
+                            var sq12 = s5+s6;
+                            console.log(sq12);
+
+                            client.query(sq12,function(err,result7)
+                            {
+                                if(err)
+                                {
+                                    res.json("error the sq12 ")
+                                }
+                                else if (result7[0].rows.length > 0) 
+                                {
+                                    console.log("result5[1]:");
+                                    res.json("already name: '" + client_name + "' exists ");
+                                } 
+                                else if (result7[1].rows.length > 0) 
+                                {
+                                    console.log("result5 [2]:");
+                                    res.json("already code: '" + client_code + "' exists ");
+                                } 
+                                else 
+                                {
+                                    var sql4 = "insert into client_master (client_comp_id, client_name, client_code) values ('" + client_comp_id + "','" + client_name + "','" + client_code + "') RETURNING client_id";
+
+                                    console.log("sql4 eooro the log "+sql4);
                 
-               } 
-               catch (error) 
-               {
-                res.json("catch error in sq query ?")
-               }
+                                    client.query(sql4, function(err, result4) 
+                                    {
+                                        if (err) 
+                                        {
+                                            console.log("error the log"+err);
+                                            res.json("error query sql4: " + err);
+                                        } 
+                                        else 
+                                        {
+                                            res.json({ message: "Successfully viewed the data", data: result4.rows });
+                                        }
+                                    });
+                                }
+                            });
+                        }
+                    }
+                } 
+                catch (error) 
+                {
+                    res.json("catch error in sq query: " + error);
+                }
             });    
-        } 
-        catch (error) 
+        }  
+        catch(error)
         {
-            res.json("catch error client 1")    
-        }
+            res.json(error);
+        }          
     }
     else if(req.body.key === "updateclient")
     {
